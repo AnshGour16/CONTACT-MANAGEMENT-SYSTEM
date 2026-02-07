@@ -1,4 +1,6 @@
 require('dotenv').config();
+const authRoutes = require('./routes/auth');
+const authMiddleware = require('./middleware/auth');
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -9,6 +11,7 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use('/api/auth', authRoutes);
 
 // Database Connection (Replace string with your local or Atlas URI)
 mongoose.connect(process.env.MONGO_URI)
@@ -29,7 +32,7 @@ const Contact = mongoose.model('Contact', contactSchema);
 // API Routes
 
 // 1. GET: Fetch all contacts
-app.get('/api/contacts', async (req, res) => {
+app.get('/api/contacts', authMiddleware, async (req, res) => {
     try {
         const contacts = await Contact.find().sort({ createdAt: -1 }); // Sorting (Bonus)
         res.json(contacts);
@@ -39,7 +42,7 @@ app.get('/api/contacts', async (req, res) => {
 });
 
 // 2. POST: Add new contact
-app.post('/api/contacts', async (req, res) => {
+app.post('/api/contacts', authMiddleware, async (req, res) => {
     try {
         const { name, email, phone, message } = req.body;
         // Basic backend validation
@@ -55,7 +58,7 @@ app.post('/api/contacts', async (req, res) => {
 });
 
 // 3. DELETE: Remove contact (Bonus)
-app.delete('/api/contacts/:id', async (req, res) => {
+app.delete('/api/contacts/:id', authMiddleware, async (req, res) => {
     try {
         await Contact.findByIdAndDelete(req.params.id);
         res.json({ message: "Contact deleted" });
@@ -65,7 +68,7 @@ app.delete('/api/contacts/:id', async (req, res) => {
 });
 
 // Add this before app.listen
-app.put('/api/contacts/:id', async (req, res) => {
+app.put('/api/contacts/:id', authMiddleware, async (req, res) => {
     try {
         const updatedContact = await Contact.findByIdAndUpdate(req.params.id, req.body, { new: true });
         res.json(updatedContact);
