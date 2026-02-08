@@ -1,21 +1,26 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
+import Register from './components/Register';
+import Login from './components/Login';
 
 function App() {
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', message: '' });
   const [editingId, setEditingId] = useState(null);
   const [errors, setErrors] = useState({});
-
+  const [authMode, setAuthMode] = useState('login');
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/contacts';
 
   const fetchContacts = async () => {
     try {
-      const res = await axios.get(API_URL);
+      const token = localStorage.getItem('token');
+      const res = await axios.get(API_URL, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setContacts(res.data);
       setLoading(false);
     } catch (err) {
@@ -24,7 +29,7 @@ function App() {
     }
   };
 
-  useEffect(() => { fetchContacts(); }, []);
+  useEffect(() => { if (isAuthenticated) fetchContacts(); }, [isAuthenticated]);
 
   const validate = (name, value) => {
     let msg = '';
@@ -106,13 +111,25 @@ function App() {
     !errors.email &&
     !errors.phone;
 
+  if (!isAuthenticated) {
+    return (
+      <div className="auth-wrapper">
+        <div className="auth-toggle">
+          <button onClick={() => setAuthMode('login')} className={authMode === 'login' ? 'active' : ''}>Login</button>
+          <button onClick={() => setAuthMode('register')} className={authMode === 'register' ? 'active' : ''}>Register</button>
+        </div>
+        {authMode === 'login' ? <Login onLogin={() => setIsAuthenticated(true)} /> : <Register onRegister={() => setIsAuthenticated(true)} />}
+      </div>
+    );
+  }
+
   return (
     <div className="app-wrapper">
       <div className="header-section">
         <h1>Contact Manager</h1>
         <p>Your professional network, organized.</p>
+        <button className="logout-btn" onClick={() => { localStorage.removeItem('token'); setIsAuthenticated(false); }}>Logout</button>
       </div>
-
       <div className="container">
         {/* Left: Form */}
         <div className="card form-card">
@@ -137,23 +154,18 @@ function App() {
               <label>Notes (Optional)</label>
               <textarea name="message" placeholder="Role, Company, or details..." value={formData.message} onChange={handleChange} />
             </div>
-
-            {/* BUTTON DISABLED LOGIC APPLIED HERE */}
             <button className="btn btn-primary" type="submit" disabled={!isFormValid}>
               {editingId ? 'Update Contact' : 'Save Contact'}
             </button>
-
             {editingId && <button type="button" className="btn btn-secondary" onClick={() => { setEditingId(null); setFormData({ name: '', email: '', phone: '', message: '' }); setErrors({}); }}>Cancel Edit</button>}
           </form>
         </div>
-
         {/* Right: List */}
         <div className="card list-card">
           <div className="list-header">
             <h2>Your Contacts <span style={{ color: '#6b7280', fontSize: '0.9em', fontWeight: 'normal' }}>({filteredContacts.length})</span></h2>
             <input className="search-input" placeholder="🔍 Search contacts..." value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
-
           {loading ? <p style={{ textAlign: 'center', color: '#6b7280' }}>Loading...</p> : (
             <div className="contact-list-container">
               {filteredContacts.length === 0 ? <div className="empty-state">No contacts found. Start adding some!</div> :
