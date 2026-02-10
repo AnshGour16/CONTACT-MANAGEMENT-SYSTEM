@@ -28,6 +28,10 @@ const Contact = mongoose.model('Contact', contactSchema);
 
 // API Routes
 
+// Auth routes
+const authRouter = require('./routes/auth');
+app.use('/api/auth', authRouter);
+
 // 1. GET: Fetch all contacts
 app.get('/api/contacts', async (req, res) => {
     try {

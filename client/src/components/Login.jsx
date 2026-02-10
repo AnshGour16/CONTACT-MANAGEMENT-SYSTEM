@@ -1,16 +1,19 @@
 
 
+
 import React, { useState } from 'react';
+import axios from 'axios';
 import './Login.css';
 
 const validateEmail = (email) =>
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-const Login = () => {
+const Login = ({ onLogin }) => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -20,7 +23,7 @@ const Login = () => {
 
   const handleShowPassword = () => setShowPassword((prev) => !prev);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     let newErrors = {};
     if (!form.email) newErrors.email = 'Email is required';
@@ -30,8 +33,16 @@ const Login = () => {
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
-      console.log('Login form data:', form);
+      setLoading(true);
       setSubmitError('');
+      try {
+        const res = await axios.post('/api/auth/login', form);
+        localStorage.setItem('token', res.data.token);
+        if (onLogin) onLogin();
+      } catch (err) {
+        setSubmitError(err.response?.data?.error || 'Login failed');
+      }
+      setLoading(false);
     } else {
       setSubmitError('Please fix the errors above.');
     }
@@ -79,7 +90,7 @@ const Login = () => {
           </div>
           {errors.password && <div className="error">{errors.password}</div>}
         </div>
-        <button type="submit" className="login-btn">Login</button>
+        <button type="submit" className="login-btn" disabled={loading}>{loading ? 'Logging in...' : 'Login'}</button>
         {submitError && <div className="error submit-error">{submitError}</div>}
         <div className="social-section">
           <div className="social-label">Or sign in with:</div>

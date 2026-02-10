@@ -61,12 +61,17 @@ function App() {
     if (!formData.name || !formData.email || !formData.phone || errors.email || errors.phone) return;
 
     try {
+      const token = localStorage.getItem('token');
       if (editingId) {
-        await axios.put(`${API_URL}/${editingId}`, formData);
+        await axios.put(`${API_URL}/${editingId}`, formData, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         setContacts(contacts.map(c => c._id === editingId ? { ...formData, _id: editingId } : c));
         setEditingId(null);
       } else {
-        const res = await axios.post(API_URL, formData);
+        const res = await axios.post(API_URL, formData, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         setContacts([res.data, ...contacts]);
       }
       setFormData({ name: '', email: '', phone: '', message: '' });
@@ -85,7 +90,10 @@ function App() {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this contact?")) return;
     try {
-      await axios.delete(`${API_URL}/${id}`);
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_URL}/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setContacts(contacts.filter(c => c._id !== id));
     } catch (err) {
       alert("Error deleting contact");
