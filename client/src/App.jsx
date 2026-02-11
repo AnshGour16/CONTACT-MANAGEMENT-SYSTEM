@@ -13,7 +13,9 @@ function App() {
   const [errors, setErrors] = useState({});
   const [authMode, setAuthMode] = useState('login');
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/contacts';
+  // Always use the base API URL, not the contacts endpoint directly
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const API_URL = `${API_BASE}/api/contacts`;
 
   const fetchContacts = async () => {
     try {
