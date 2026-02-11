@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const Register = ({ onRegister }) => {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
@@ -15,7 +17,7 @@ const Register = ({ onRegister }) => {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.post('/api/auth/register', form);
+      const res = await axios.post(`${API_URL}/api/auth/register`, form);
       localStorage.setItem('token', res.data.token);
       onRegister();
     } catch (err) {

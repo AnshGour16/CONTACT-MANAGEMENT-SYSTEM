@@ -3,6 +3,8 @@
 
 import React, { useState } from 'react';
 import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_API_URL;
 import './Login.css';
 
 const validateEmail = (email) =>
@@ -36,7 +38,7 @@ const Login = ({ onLogin }) => {
       setLoading(true);
       setSubmitError('');
       try {
-        const res = await axios.post('/api/auth/login', form);
+        const res = await axios.post(`${API_URL}/api/auth/login`, form);
         localStorage.setItem('token', res.data.token);
         if (onLogin) onLogin();
       } catch (err) {
