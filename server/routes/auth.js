@@ -28,6 +28,7 @@ router.post('/register', [
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
     res.json({ token });
   } catch (err) {
+    console.error('Register error:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -54,6 +55,7 @@ router.post('/login', [
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
     res.json({ token });
   } catch (err) {
+    console.error('Login error:', err);
     res.status(500).json({ error: err.message });
   }
 });
